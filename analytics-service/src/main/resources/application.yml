@@ -1,0 +1,23 @@
+server:
+  port: 9086
+
+spring:
+  application:
+    name: analytics-service
+
+  # Disable ClickHouse and Kafka — not available in local dev without Docker
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.devflow: DEBUG

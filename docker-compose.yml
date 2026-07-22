@@ -1,0 +1,369 @@
+networks:
+  devflow-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  clickhouse_data:
+  minio_data:
+  kafka_data:
+  zookeeper_data:
+  grafana_data:
+  prometheus_data:
+
+services:
+  # ── INFRASTRUCTURE ─────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: devflow-postgres
+    restart: unless-stopped
+    networks: [devflow-net]
+    environment:
+      POSTGRES_USER: devflow
+      POSTGRES_PASSWORD: devflow_secret
+      POSTGRES_DB: devflow_db
+    ports: ["5432:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U devflow -d devflow_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7.0
+    container_name: devflow-mongodb
+    restart: unless-stopped
+    networks: [devflow-net]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: devflow
+      MONGO_INITDB_ROOT_PASSWORD: devflow_secret
+    ports: ["27017:27017"]
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD","mongosh","--eval","db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 15s
+      retries: 5
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: devflow-redis
+    restart: unless-stopped
+    networks: [devflow-net]
+    command: redis-server --requirepass devflow_secret --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
+    ports: ["6379:6379"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD","redis-cli","-a","devflow_secret","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: devflow-clickhouse
+    restart: unless-stopped
+    networks: [devflow-net]
+    environment:
+      CLICKHOUSE_DB: devflow_analytics
+      CLICKHOUSE_USER: devflow
+      CLICKHOUSE_PASSWORD: devflow_secret
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports: ["8123:8123","9000:9000"]
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+  minio:
+    image: minio/minio:RELEASE.2024-09-22T00-33-43Z
+    container_name: devflow-minio
+    restart: unless-stopped
+    networks: [devflow-net]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: devflow
+      MINIO_ROOT_PASSWORD: devflow_secret
+    ports: ["9090:9000","9001:9001"]
+    volumes:
+      - minio_data:/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.0
+    container_name: devflow-zookeeper
+    restart: unless-stopped
+    networks: [devflow-net]
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports: ["2181:2181"]
+    volumes: [zookeeper_data:/var/lib/zookeeper/data]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: devflow-kafka
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [zookeeper]
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports: ["29092:29092"]
+    volumes: [kafka_data:/var/lib/kafka/data]
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.7.0
+    container_name: devflow-schema-registry
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [kafka]
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    ports: ["8089:8081"]
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: devflow-kafka-ui
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [kafka]
+    environment:
+      KAFKA_CLUSTERS_0_NAME: devflow
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+    ports: ["8090:8080"]
+
+  # ── OBSERVABILITY ─────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: devflow-prometheus
+    restart: unless-stopped
+    networks: [devflow-net]
+    command: ["--config.file=/etc/prometheus/prometheus.yml","--storage.tsdb.path=/prometheus","--web.enable-lifecycle"]
+    ports: ["9091:9090"]
+    volumes:
+      - ./infrastructure/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:11.2.1
+    container_name: devflow-grafana
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [prometheus]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: devflow_admin
+    ports: ["3002:3000"]
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/docker/grafana/provisioning:/etc/grafana/provisioning
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.61.0
+    container_name: devflow-jaeger
+    restart: unless-stopped
+    networks: [devflow-net]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["16686:16686","4317:4317","4318:4318"]
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: devflow-mailhog
+    restart: unless-stopped
+    networks: [devflow-net]
+    ports: ["1025:1025","8025:8025"]
+
+  # ── MICROSERVICES ─────────────────────────────────────
+  api-gateway:
+    build: {context: ./api-gateway, dockerfile: Dockerfile}
+    container_name: devflow-api-gateway
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [redis,auth-service]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      AUTH_SERVICE_URL: http://auth-service:8081
+      AUTH_SERVICE_HOST: auth-service
+      PROJECT_SERVICE_HOST: project-service
+      TASK_SERVICE_HOST: task-service
+      AI_ENGINE_HOST: ai-engine
+      NOTIFICATION_SERVICE_HOST: notification-service
+      ANALYTICS_SERVICE_HOST: analytics-service
+      INTEGRATION_SERVICE_HOST: integration-service
+      REALTIME_SERVICE_HOST: realtime-service
+      JAEGER_HOST: jaeger
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration,org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration"
+    ports: ["9080:8080", "8080:8080"]
+
+  auth-service:
+    build: {context: ./auth-service, dockerfile: Dockerfile}
+    container_name: devflow-auth-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+    ports: ["9081:8081", "8081:8081"]
+
+  project-service:
+    build: {context: ./project-service, dockerfile: Dockerfile}
+    container_name: devflow-project-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9082:8082", "8082:8082"]
+
+  task-service:
+    build: {context: ./task-service, dockerfile: Dockerfile}
+    container_name: devflow-task-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9083:8083", "8083:8083"]
+
+  ai-engine:
+    build: {context: ./ai-engine, dockerfile: Dockerfile}
+    container_name: devflow-ai-engine
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_AI_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-dummy}
+      SPRING_AI_OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy}
+      SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9084:8084", "8084:8084"]
+
+  notification-service:
+    build: {context: ./notification-service, dockerfile: Dockerfile}
+    container_name: devflow-notification-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      mongodb: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_MONGODB_URI: mongodb://devflow:devflow_secret@mongodb:27017/devflow_notifications?authSource=admin
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9085:8085", "8085:8085"]
+
+  analytics-service:
+    build: {context: ./analytics-service, dockerfile: Dockerfile}
+    container_name: devflow-analytics-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [clickhouse,kafka]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CLICKHOUSE_URL: jdbc:clickhouse://clickhouse:8123/devflow_analytics
+      CLICKHOUSE_USERNAME: devflow
+      CLICKHOUSE_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9086:8086", "8086:8086"]
+
+  integration-service:
+    build: {context: ./integration-service, dockerfile: Dockerfile}
+    container_name: devflow-integration-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      GITHUB_APP_ID: ${GITHUB_APP_ID:-0}
+      GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-dummy}
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9087:8087", "8087:8087"]
+
+  realtime-service:
+    build: {context: ./realtime-service, dockerfile: Dockerfile}
+    container_name: devflow-realtime-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      redis: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration"
+    ports: ["9088:8088", "8091:8088"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:9080
+        VITE_WS_URL: ws://localhost:9088/ws
+    container_name: devflow-frontend
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [api-gateway]
+    ports: ["4000:80", "3000:80"]
+

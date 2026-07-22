@@ -1,0 +1,115 @@
+server:
+  port: 9082
+
+spring:
+  application:
+    name: project-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/devflow_project_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        default_schema: public
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    table: project_flyway_schema_history
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: 6379
+      password: ${SPRING_DATA_REDIS_PASSWORD:devflow_secret}
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+
+jwt:
+  secret: ${JWT_SECRET:ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfYXRfbGVhc3RfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTY=}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    com.devflow.project: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/devflow_db}
+    username: ${SPRING_DATASOURCE_USERNAME:devflow}
+    password: ${SPRING_DATASOURCE_PASSWORD:devflow_secret}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: public
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    table: project_flyway_schema_history
+  h2:
+    console:
+      enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/devflow_db}
+    username: ${SPRING_DATASOURCE_USERNAME:devflow}
+    password: ${SPRING_DATASOURCE_PASSWORD:devflow_secret}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: public
+  flyway:
+    enabled: true

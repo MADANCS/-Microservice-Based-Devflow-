@@ -1,0 +1,160 @@
+# docker-compose.core.yml
+# ──────────────────────────────────────────────────────────────────
+# Minimal DevFlow stack: Postgres + Redis + 4 core services + frontend
+# Usage: docker-compose -f docker-compose.core.yml up -d
+# ──────────────────────────────────────────────────────────────────
+
+networks:
+  devflow-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  # ── INFRASTRUCTURE ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: devflow-postgres
+    restart: unless-stopped
+    networks: [devflow-net]
+    environment:
+      POSTGRES_USER: devflow
+      POSTGRES_PASSWORD: devflow_secret
+      POSTGRES_DB: devflow_db
+    ports: ["5432:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U devflow -d devflow_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: devflow-redis
+    restart: unless-stopped
+    networks: [devflow-net]
+    command: redis-server --requirepass devflow_secret --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports: ["6379:6379"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD","redis-cli","-a","devflow_secret","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── MICROSERVICES ───────────────────────────────────────────────
+  auth-service:
+    build: {context: ./auth-service, dockerfile: Dockerfile}
+    image: devflow-auth-service
+    container_name: devflow-auth-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      # Disable Kafka auto-config since no Kafka in core compose
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+    ports: ["8081:8081"]
+    healthcheck:
+      test: ["CMD-SHELL","wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  project-service:
+    build: {context: ./project-service, dockerfile: Dockerfile}
+    image: devflow-project-service
+    container_name: devflow-project-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+    ports: ["8082:8082"]
+    healthcheck:
+      test: ["CMD-SHELL","wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  task-service:
+    build: {context: ./task-service, dockerfile: Dockerfile}
+    image: devflow-task-service
+    container_name: devflow-task-service
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis:    {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/devflow_db
+      SPRING_DATASOURCE_USERNAME: devflow
+      SPRING_DATASOURCE_PASSWORD: devflow_secret
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration,org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+    ports: ["8083:8083"]
+    healthcheck:
+      test: ["CMD-SHELL","wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  api-gateway:
+    build: {context: ./api-gateway, dockerfile: Dockerfile}
+    image: devflow-api-gateway
+    container_name: devflow-api-gateway
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [redis, auth-service]
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: devflow_secret
+      JWT_SECRET: "ZGV2Zmxvd19qd3Rfc2VjcmV0X2tleV8yMDI2X211c3RfYmVfMjU2X2JpdHNfbG9uZ19mb3JfaHMyNTZfYWxnb3JpdGht"
+      AUTH_SERVICE_URL: http://auth-service:8081
+      AUTH_SERVICE_HOST: auth-service
+      PROJECT_SERVICE_HOST: project-service
+      TASK_SERVICE_HOST: task-service
+      AI_ENGINE_HOST: ai-engine
+      NOTIFICATION_SERVICE_HOST: notification-service
+      ANALYTICS_SERVICE_HOST: analytics-service
+      INTEGRATION_SERVICE_HOST: integration-service
+      REALTIME_SERVICE_HOST: realtime-service
+      SPRING_AUTOCONFIGURE_EXCLUDE: "org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration,org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration,org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration"
+    ports: ["8080:8080"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: devflow-frontend
+    container_name: devflow-frontend
+    restart: unless-stopped
+    networks: [devflow-net]
+    depends_on: [api-gateway]
+    ports: ["3000:80"]

@@ -1,0 +1,34 @@
+# Compiled target outputs
+**/target/
+**/dist/
+**/build/
+*.class
+*.jar
+*.war
+*.ear
+
+# Node dependencies & logs
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Embedded Local JDK & Maven tools
+jdk21/
+maven/
+jdk21.zip
+maven.zip
+
+# Runtime Data & Logs
+data/
+logs/
+*.log
+*.mv.db
+*.trace.db
+
+# IDE & OS Files
+.idea/
+.vscode/
+*.swp
+*.DS_Store
+Thumbs.db
