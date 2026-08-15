@@ -86,8 +86,25 @@ export const DashboardLayout = () => {
 
   const currentNavLabel = navItems.find(n => n.path === location.pathname)?.label ?? 'DevFlow'
 
+  const isLight = mode === 'light' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches)
+
+  /* Sync light / dark mode class to html document root */
+  useEffect(() => {
+    const root = document.documentElement
+    if (isLight) {
+      root.classList.add('light', 'light-mode')
+      root.classList.remove('dark')
+    } else {
+      root.classList.add('dark')
+      root.classList.remove('light', 'light-mode')
+    }
+  }, [isLight])
+
   return (
-    <div className="flex h-screen bg-[#020617] overflow-hidden text-slate-100 font-sans selection:bg-primary-500/30">
+    <div className={cn(
+      "flex h-screen overflow-hidden font-sans transition-colors duration-300 selection:bg-primary-500/30",
+      isLight ? "bg-slate-50 text-slate-900" : "bg-[#020617] text-slate-100"
+    )}>
 
       {/* Sidebar */}
       <motion.aside
@@ -95,15 +112,17 @@ export const DashboardLayout = () => {
         transition={{ type: 'spring' as const, stiffness: 300, damping: 30 }}
         className="relative flex-shrink-0 flex flex-col z-20 overflow-hidden"
         style={{
-          background: 'linear-gradient(180deg,rgb(10 14 30/0.98) 0%,rgb(8 12 25/0.98) 100%)',
-          borderRight: '1px solid rgb(51 65 85/0.4)',
+          background: isLight 
+            ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%)'
+            : 'linear-gradient(180deg,rgb(10 14 30/0.98) 0%,rgb(8 12 25/0.98) 100%)',
+          borderRight: isLight ? '1px solid rgba(226, 232, 240, 0.9)' : '1px solid rgb(51 65 85/0.4)',
           backdropFilter: 'blur(16px)',
         }}
       >
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary-900/20 to-transparent pointer-events-none" />
 
         {/* Logo row */}
-        <div className="h-16 flex items-center px-3 gap-2.5 flex-shrink-0 border-b border-slate-800/50">
+        <div className={cn("h-16 flex items-center px-3 gap-2.5 flex-shrink-0 border-b", isLight ? "border-slate-200" : "border-slate-800/50")}>
           <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
             <ReactLogo size={36} animate />
           </div>
@@ -115,10 +134,13 @@ export const DashboardLayout = () => {
                 exit={{ opacity: 0, x: -10 }}
                 className="overflow-hidden"
               >
-                <p className="text-sm font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[#61dafb] via-white to-slate-300 whitespace-nowrap">
+                <p className={cn(
+                  "text-sm font-black tracking-tight bg-clip-text text-transparent whitespace-nowrap",
+                  isLight ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-800" : "bg-gradient-to-r from-[#61dafb] via-white to-slate-300"
+                )}>
                   DevFlow
                 </p>
-                <p className="text-[9px] text-slate-500 whitespace-nowrap tracking-widest uppercase">
+                <p className={cn("text-[9px] whitespace-nowrap tracking-widest uppercase", isLight ? "text-slate-400" : "text-slate-500")}>
                   Powered by React
                 </p>
               </motion.div>
@@ -129,7 +151,7 @@ export const DashboardLayout = () => {
         {/* Nav */}
         <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {!sidebarCollapsed && (
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mb-3 px-3">Navigation</p>
+            <p className={cn("text-[9px] font-bold uppercase tracking-widest mb-3 px-3", isLight ? "text-slate-400" : "text-slate-600")}>Navigation</p>
           )}
           {navItems.map(item => {
             const Icon  = item.icon
@@ -143,7 +165,9 @@ export const DashboardLayout = () => {
                   'relative flex items-center rounded-xl transition-all duration-200 group overflow-hidden',
                   sidebarCollapsed ? 'px-3 py-3 justify-center' : 'px-3 py-2.5 gap-3',
                   active
-                    ? 'text-[#61dafb]'
+                    ? 'text-primary-500 font-semibold'
+                    : isLight
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     : 'text-slate-500 hover:text-slate-200'
                 )}
               >
@@ -151,7 +175,12 @@ export const DashboardLayout = () => {
                   <motion.div
                     layoutId="nav-active"
                     className="absolute inset-0 rounded-xl"
-                    style={{ background: 'linear-gradient(135deg,rgb(97 218 251/0.12),rgb(59 130 246/0.08))', border: '1px solid rgb(97 218 251/0.2)' }}
+                    style={{ 
+                      background: isLight 
+                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.08))' 
+                        : 'linear-gradient(135deg,rgb(97 218 251/0.12),rgb(59 130 246/0.08))', 
+                      border: isLight ? '1px solid rgba(59, 130, 246, 0.25)' : '1px solid rgb(97 218 251/0.2)' 
+                    }}
                     transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
                   />
                 )}
@@ -169,7 +198,10 @@ export const DashboardLayout = () => {
                   )}
                 </AnimatePresence>
                 {sidebarCollapsed && (
-                  <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-xl">
+                  <div className={cn(
+                    "absolute left-full ml-3 px-2.5 py-1.5 rounded-xl text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-xl border",
+                    isLight ? "bg-white text-slate-800 border-slate-200" : "bg-slate-800 text-white border-slate-700"
+                  )}>
                     {item.label}
                   </div>
                 )}
@@ -179,11 +211,12 @@ export const DashboardLayout = () => {
         </nav>
 
         {/* User avatar row */}
-        <div className="p-2 border-t border-slate-800/50 flex-shrink-0">
+        <div className={cn("p-2 border-t flex-shrink-0", isLight ? "border-slate-200" : "border-slate-800/50")}>
           <button
             onClick={() => setProfileOpen(true)}
             className={cn(
-              'w-full flex items-center rounded-xl hover:bg-slate-800/60 cursor-pointer transition-all p-2 gap-2.5 group',
+              'w-full flex items-center rounded-xl cursor-pointer transition-all p-2 gap-2.5 group',
+              isLight ? 'hover:bg-slate-100' : 'hover:bg-slate-800/60',
               sidebarCollapsed && 'justify-center'
             )}
           >
@@ -191,9 +224,9 @@ export const DashboardLayout = () => {
               <img
                 src={user?.avatar || `https://i.pravatar.cc/150?u=devflow`}
                 alt="User"
-                className="w-8 h-8 rounded-xl border-2 border-slate-700 group-hover:border-[#61dafb]/50 transition-colors bg-slate-800"
+                className={cn("w-8 h-8 rounded-xl border-2 transition-colors bg-slate-800", isLight ? "border-slate-300 group-hover:border-primary-500" : "border-slate-700 group-hover:border-[#61dafb]/50")}
               />
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#020617] rounded-full" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#020617] rounded-full" />
             </div>
             <AnimatePresence>
               {!sidebarCollapsed && (
@@ -203,8 +236,8 @@ export const DashboardLayout = () => {
                   exit={{ opacity: 0, width: 0 }}
                   className="overflow-hidden text-left"
                 >
-                  <p className="text-xs font-semibold text-white whitespace-nowrap">{user?.name || 'Developer'}</p>
-                  <p className="text-[10px] text-slate-500 whitespace-nowrap">{user?.email || 'dev@devflow.io'}</p>
+                  <p className={cn("text-xs font-semibold whitespace-nowrap", isLight ? "text-slate-900" : "text-white")}>{user?.name || 'Developer'}</p>
+                  <p className={cn("text-[10px] whitespace-nowrap", isLight ? "text-slate-500" : "text-slate-500")}>{user?.email || 'dev@devflow.io'}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -224,42 +257,47 @@ export const DashboardLayout = () => {
         <header
           className="h-14 px-4 flex items-center justify-between gap-4 flex-shrink-0 z-10"
           style={{
-            background: 'rgb(2 6 23/0.8)',
-            borderBottom: '1px solid rgb(51 65 85/0.3)',
+            background: isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgb(2 6 23/0.8)',
+            borderBottom: isLight ? '1px solid rgba(226, 232, 240, 0.9)' : '1px solid rgb(51 65 85/0.3)',
             backdropFilter: 'blur(20px)',
           }}
         >
           <div className="flex items-center gap-3">
             <button
               onClick={() => dispatch(toggleSidebar())}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-all"
+              className={cn("p-1.5 rounded-lg transition-all", isLight ? "text-slate-600 hover:text-slate-900 hover:bg-slate-200" : "text-slate-500 hover:text-white hover:bg-slate-800")}
             >
               {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
 
             <div className="hidden sm:flex items-center gap-2 text-sm">
-              <span className="text-slate-500">DevFlow</span>
-              <span className="text-slate-700">/</span>
-              <span className="text-white font-medium">{currentNavLabel}</span>
+              <span className={cn(isLight ? "text-slate-500" : "text-slate-500")}>DevFlow</span>
+              <span className={cn(isLight ? "text-slate-300" : "text-slate-700")}>/</span>
+              <span className={cn("font-medium", isLight ? "text-slate-900 font-semibold" : "text-white")}>{currentNavLabel}</span>
             </div>
           </div>
 
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm text-slate-500 hover:text-slate-200 transition-all group w-56"
-            style={{ background: 'rgb(15 23 42/0.6)', borderColor: 'rgb(51 65 85/0.5)' }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm transition-all group w-56"
+            style={{ 
+              background: isLight ? 'rgba(241, 245, 249, 0.9)' : 'rgb(15 23 42/0.6)', 
+              borderColor: isLight ? 'rgba(203, 213, 225, 0.9)' : 'rgb(51 65 85/0.5)',
+              color: isLight ? '#475569' : '#94a3b8'
+            }}
           >
-            <Search className="w-3.5 h-3.5 group-hover:text-[#61dafb] transition-colors flex-shrink-0" />
+            <Search className="w-3.5 h-3.5 group-hover:text-primary-500 transition-colors flex-shrink-0" />
             <span className="flex-1 text-left">Search…</span>
-            <kbd className="hidden sm:block text-[9px] font-mono bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-slate-500">⌘/</kbd>
+            <kbd className={cn("hidden sm:block text-[9px] font-mono px-1.5 py-0.5 rounded border", isLight ? "bg-slate-200 border-slate-300 text-slate-600" : "bg-slate-800 border-slate-700 text-slate-500")}>⌘/</kbd>
           </button>
 
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => dispatch(setMode(mode === 'dark' ? 'light' : 'dark'))}
-              className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800 transition-all"
+              onClick={() => dispatch(setMode(isLight ? 'dark' : 'light'))}
+              title={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+              className={cn("p-2 rounded-xl transition-all", isLight ? "text-amber-600 hover:bg-slate-200" : "text-slate-400 hover:text-white hover:bg-slate-800")}
             >
-              {mode === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {isLight ? <Sun className="w-4 h-4 text-amber-500 fill-amber-500/20" /> : <Moon className="w-4 h-4 text-blue-400" />}
             </button>
 
             <NotificationBell userId={user?.id || 'anonymous'} />
