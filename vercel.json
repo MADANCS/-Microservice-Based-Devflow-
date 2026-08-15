@@ -6,11 +6,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://devflow-api-gateway.onrender.com/api/:path*"
+      "destination": "https://devflow-api-gateway-42ah.onrender.com/api/:path*"
     },
     {
       "source": "/ws/:path*",
-      "destination": "https://devflow-api-gateway.onrender.com/ws/:path*"
+      "destination": "https://devflow-api-gateway-42ah.onrender.com/ws/:path*"
     },
     {
       "source": "/(.*)",
