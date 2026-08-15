@@ -139,11 +139,12 @@ management:
     health:
       show-details: always
   tracing:
+    enabled: ${TRACING_ENABLED:false}
     sampling:
-      probability: 1.0
+      probability: ${TRACING_SAMPLING:0.0}
   otlp:
     tracing:
-      endpoint: http://${JAEGER_HOST:jaeger}:4317
+      endpoint: ${JAEGER_ENDPOINT:http://localhost:4317}
 
 logging:
   level:
