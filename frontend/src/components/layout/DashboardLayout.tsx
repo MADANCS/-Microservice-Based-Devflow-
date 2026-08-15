@@ -22,16 +22,16 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 const navItems = [
-  { icon: LayoutDashboard,  label: 'Command Center', path: '/' },
-  { icon: LayoutDashboard,  label: 'Dashboard',      path: '/dashboard' },
-  { icon: FolderKanbanIcon, label: 'Projects',       path: '/projects' },
-  { icon: CheckSquare,      label: 'My Tasks',       path: '/tasks' },
-  { icon: Calendar,         label: 'Calendar',       path: '/calendar' },
-  { icon: BarChart2,        label: 'Analytics',      path: '/analytics' },
-  { icon: Brain,            label: 'AI Insights',    path: '/ai-insights' },
-  { icon: Zap,              label: 'Sprints',        path: '/sprints' },
-  { icon: Map,              label: 'Roadmap',        path: '/roadmap' },
-  { icon: Users,            label: 'Team',           path: '/team' },
+  { icon: LayoutDashboard,  label: 'Command Center', path: '/',           color: 'text-blue-500' },
+  { icon: LayoutDashboard,  label: 'Dashboard',      path: '/dashboard',  color: 'text-indigo-500' },
+  { icon: FolderKanbanIcon, label: 'Projects',       path: '/projects',   color: 'text-purple-500' },
+  { icon: CheckSquare,      label: 'My Tasks',       path: '/tasks',      color: 'text-emerald-500' },
+  { icon: Calendar,         label: 'Calendar',       path: '/calendar',   color: 'text-rose-500' },
+  { icon: BarChart2,        label: 'Analytics',      path: '/analytics',  color: 'text-amber-500' },
+  { icon: Brain,            label: 'AI Insights',    path: '/ai-insights',color: 'text-cyan-500' },
+  { icon: Zap,              label: 'Sprints',        path: '/sprints',    color: 'text-teal-500' },
+  { icon: Map,              label: 'Roadmap',        path: '/roadmap',    color: 'text-pink-500' },
+  { icon: Users,            label: 'Team',           path: '/team',       color: 'text-violet-500' },
 ]
 
 export const DashboardLayout = () => {
@@ -184,7 +184,11 @@ export const DashboardLayout = () => {
                     transition={{ type: 'spring' as const, stiffness: 400, damping: 35 }}
                   />
                 )}
-                <Icon className={cn('w-4.5 h-4.5 flex-shrink-0 relative z-10 transition-transform duration-200', active ? 'scale-110' : 'group-hover:scale-110')} style={{ width: 18, height: 18 }} />
+                <Icon className={cn(
+                  'w-4.5 h-4.5 flex-shrink-0 relative z-10 transition-transform duration-200',
+                  active ? 'scale-110' : 'group-hover:scale-110',
+                  isLight ? item.color : ''
+                )} style={{ width: 18, height: 18 }} />
                 <AnimatePresence>
                   {!sidebarCollapsed && (
                     <motion.span

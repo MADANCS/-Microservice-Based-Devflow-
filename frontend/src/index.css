@@ -303,6 +303,85 @@ html.light .border-primary-500\/50, .light-mode .border-primary-500\/50 {
   border-color: rgba(37, 99, 235, 0.3) !important;
 }
 
+/* Vibrant Priority Badges & Status Pills in Light Mode */
+html.light .bg-rose-500\/10, .light-mode .bg-rose-500\/10 {
+  background-color: #ffe4e6 !important;
+}
+html.light .text-rose-400, .light-mode .text-rose-400 {
+  color: #be123c !important;
+}
+html.light .border-rose-500\/20, .light-mode .border-rose-500\/20,
+html.light .border-rose-500\/30, .light-mode .border-rose-500\/30 {
+  border-color: #fecdd3 !important;
+}
+
+html.light .bg-amber-500\/10, .light-mode .bg-amber-500\/10 {
+  background-color: #fef3c7 !important;
+}
+html.light .text-amber-400, .light-mode .text-amber-400 {
+  color: #b45309 !important;
+}
+html.light .border-amber-500\/20, .light-mode .border-amber-500\/20 {
+  border-color: #fde68a !important;
+}
+
+html.light .bg-blue-500\/10, .light-mode .bg-blue-500\/10 {
+  background-color: #dbeafe !important;
+}
+html.light .text-blue-400, .light-mode .text-blue-400,
+html.light .text-primary-400, .light-mode .text-primary-400 {
+  color: #1d4ed8 !important;
+}
+html.light .border-blue-500\/20, .light-mode .border-blue-500\/20 {
+  border-color: #bfdbfe !important;
+}
+
+html.light .bg-emerald-500\/10, .light-mode .bg-emerald-500\/10 {
+  background-color: #d1fae5 !important;
+}
+html.light .text-emerald-400, .light-mode .text-emerald-400 {
+  color: #047857 !important;
+}
+html.light .border-emerald-500\/20, .light-mode .border-emerald-500\/20 {
+  border-color: #a7f3d0 !important;
+}
+
+html.light .text-indigo-400, .light-mode .text-indigo-400 {
+  color: #4338ca !important;
+}
+html.light .text-purple-400, .light-mode .text-purple-400 {
+  color: #6d28d9 !important;
+}
+html.light .text-cyan-400, .light-mode .text-cyan-400 {
+  color: #0e7490 !important;
+}
+html.light .text-teal-400, .light-mode .text-teal-400 {
+  color: #0f766e !important;
+}
+html.light .text-pink-400, .light-mode .text-pink-400 {
+  color: #be185d !important;
+}
+
+/* Kanban Task Cards & Calendar in Light Mode */
+html.light .bg-dark-900\/80, .light-mode .bg-dark-900\/80,
+html.light .bg-dark-900\/90, .light-mode .bg-dark-900\/90 {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-dark-950\/20, .light-mode .bg-dark-950\/20 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .ring-primary-500, .light-mode .ring-primary-500 {
+  --tw-ring-color: #2563eb !important;
+}
+html.light .bg-primary-900\/10, .light-mode .bg-primary-900\/10 {
+  background-color: #eff6ff !important;
+}
+
 /* ── Global scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track  { background: transparent; }
