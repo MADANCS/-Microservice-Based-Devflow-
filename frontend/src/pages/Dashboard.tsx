@@ -84,6 +84,9 @@ const TT_STYLE = {
 }
 
 export const Dashboard = () => {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const navigate = useNavigate()
   const dispatch = useDispatch<any>()
   const user    = useSelector((s: RootState) => s.auth.user)
@@ -220,26 +223,28 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={velocityData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="gPoints" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#61dafb" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#61dafb" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gBugs" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85/0.3)" vertical={false} />
-                <XAxis dataKey="name" stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={TT_STYLE} />
-                <Area type="monotone" dataKey="points" stroke="#61dafb" strokeWidth={2.5} fill="url(#gPoints)" dot={{ fill: '#61dafb', r: 3, strokeWidth: 0 }} />
-                <Area type="monotone" dataKey="bugs"   stroke="#ef4444" strokeWidth={2} fill="url(#gBugs)" dot={{ fill: '#ef4444', r: 3, strokeWidth: 0 }} />
-              </AreaChart>
-            </ResponsiveContainer>
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150} debounce={50}>
+                <AreaChart data={velocityData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gPoints" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#61dafb" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#61dafb" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gBugs" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85/0.3)" vertical={false} />
+                  <XAxis dataKey="name" stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={TT_STYLE} />
+                  <Area type="monotone" dataKey="points" stroke="#61dafb" strokeWidth={2.5} fill="url(#gPoints)" dot={{ fill: '#61dafb', r: 3, strokeWidth: 0 }} />
+                  <Area type="monotone" dataKey="bugs"   stroke="#ef4444" strokeWidth={2} fill="url(#gBugs)" dot={{ fill: '#ef4444', r: 3, strokeWidth: 0 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </motion.div>
 
@@ -284,7 +289,7 @@ export const Dashboard = () => {
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   <span className="font-mono text-[10px] text-amber-400 bg-amber-950/30 px-1 rounded">
                     {criticalTasks} task{criticalTasks > 1 ? 's' : ''}
-                  </span> at CRITICAL priority Ã¢â‚¬â€ needs immediate attention.
+                  </span> at CRITICAL priority — needs immediate attention.
                 </p>
               </div>
             ) : (
@@ -325,7 +330,7 @@ export const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Weekly Activity Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Weekly Activity ── */}
       <motion.div variants={fadeUp} custom={7} className="rounded-2xl p-5"
         style={{ background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))', border: '1px solid rgb(51 65 85/0.4)' }}>
         <div className="flex items-center justify-between mb-4">
@@ -338,20 +343,22 @@ export const Dashboard = () => {
           </div>
         </div>
         <div className="h-36">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={weeklyActivity} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barCategoryGap="30%">
-              <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85/0.3)" vertical={false} />
-              <XAxis dataKey="day" stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={TT_STYLE} />
-              <Bar dataKey="commits" fill="#818cf8" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="tasks"   fill="#34d399" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {mounted && (
+            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={120} debounce={50}>
+              <BarChart data={weeklyActivity} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85/0.3)" vertical={false} />
+                <XAxis dataKey="day" stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TT_STYLE} />
+                <Bar dataKey="commits" fill="#818cf8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="tasks"   fill="#34d399" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </motion.div>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Project Progress Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ── Project Progress ── */}
       <motion.div variants={fadeUp} custom={8} className="rounded-2xl p-5"
         style={{ background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))', border: '1px solid rgb(51 65 85/0.4)' }}>
         <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">

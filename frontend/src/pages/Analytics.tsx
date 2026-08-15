@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useSelector } from 'react-redux'
 import type { RootState } from '../store/store'
@@ -72,6 +72,9 @@ const fadeUp = {
 }
 
 export const Analytics = () => {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const { projects, tasks } = useSelector((state: RootState) => state.workspace)
   const [activeTab, setActiveTab] = useState<'overview' | 'velocity' | 'burndown' | 'team'>('overview')
 
@@ -82,12 +85,15 @@ export const Analytics = () => {
   const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
   const avgVelocity = Math.round(sprintVelocity.reduce((s, v) => s + v.delivered, 0) / sprintVelocity.length)
 
-  const priorityDist = useMemo(() => [
-    { name: 'Critical', value: tasks.filter(t => t.priority === 'CRITICAL').length },
-    { name: 'High', value: tasks.filter(t => t.priority === 'HIGH').length },
-    { name: 'Medium', value: tasks.filter(t => t.priority === 'MEDIUM').length },
-    { name: 'Low', value: tasks.filter(t => t.priority === 'LOW').length },
-  ].filter(d => d.value > 0), [tasks])
+  const priorityDist = useMemo(() => {
+    const list = [
+      { name: 'Critical', value: tasks.filter(t => t.priority === 'CRITICAL').length },
+      { name: 'High', value: tasks.filter(t => t.priority === 'HIGH').length },
+      { name: 'Medium', value: tasks.filter(t => t.priority === 'MEDIUM').length },
+      { name: 'Low', value: tasks.filter(t => t.priority === 'LOW').length },
+    ].filter(d => d.value > 0)
+    return list.length > 0 ? list : [{ name: 'Tasks', value: 1 }]
+  }, [tasks])
 
   const statCards = [
     { label: 'Completion Rate', value: `${completionRate}%`, sub: `${doneTasks}/${totalTasks} tasks`, icon: Target, color: 'text-emerald-400', bg: 'bg-emerald-400/10', trend: '+8%', up: true },
@@ -190,14 +196,16 @@ export const Analytics = () => {
                   <span className="text-xs text-dark-400">{totalTasks} total tasks</span>
                 </div>
                 <div className="flex items-center gap-6">
-                  <ResponsiveContainer width="50%" height={180}>
-                    <PieChart>
-                      <Pie data={priorityDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                        {priorityDist.map((_, idx) => <Cell key={idx} fill={COLORS[idx]} />)}
-                      </Pie>
-                      <Tooltip contentStyle={CustomTooltipStyle} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  {mounted && (
+                    <ResponsiveContainer width="100%" height={180} minWidth={100} minHeight={150} debounce={50}>
+                      <PieChart>
+                        <Pie data={priorityDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                          {priorityDist.map((_, idx) => <Cell key={idx} fill={COLORS[idx]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={CustomTooltipStyle} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                   <div className="flex flex-col gap-3 flex-1">
                     {priorityDist.map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between">
@@ -268,17 +276,19 @@ export const Analytics = () => {
                   <span className="flex items-center gap-1 text-rose-400"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Bugs</span>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={sprintVelocity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                  <XAxis dataKey="sprint" stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={CustomTooltipStyle} />
-                  <Bar dataKey="planned" fill="#3b82f6" opacity={0.5} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="delivered" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="bugs" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {mounted && (
+                <ResponsiveContainer width="100%" height={320} minWidth={100} minHeight={200} debounce={50}>
+                  <BarChart data={sprintVelocity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="sprint" stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={CustomTooltipStyle} />
+                    <Bar dataKey="planned" fill="#3b82f6" opacity={0.5} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="delivered" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="bugs" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
               <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-dark-800">
                 {[
                   { label: 'Avg Planned', value: Math.round(sprintVelocity.reduce((s, v) => s + v.planned, 0) / sprintVelocity.length), color: 'text-blue-400' },
@@ -300,28 +310,30 @@ export const Analytics = () => {
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Activity className="w-5 h-5 text-amber-400" /> Sprint Burndown Chart
                 </h3>
-                <span className="text-xs text-dark-400 bg-dark-800 px-3 py-1 rounded-lg border border-dark-700">Sprint 6 Ã¢â‚¬â€ Active</span>
+                <span className="text-xs text-dark-400 bg-dark-800 px-3 py-1 rounded-lg border border-dark-700">Sprint 6 — Active</span>
               </div>
-              <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={burndownData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="remaining" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="ideal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#64748b" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                  <XAxis dataKey="day" stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={CustomTooltipStyle} />
-                  <Area type="monotone" dataKey="ideal" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" fill="url(#ideal)" name="Ideal" />
-                  <Area type="monotone" dataKey="remaining" stroke="#3b82f6" strokeWidth={3} fill="url(#remaining)" name="Remaining" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {mounted && (
+                <ResponsiveContainer width="100%" height={320} minWidth={100} minHeight={200} debounce={50}>
+                  <AreaChart data={burndownData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="remaining" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="ideal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#64748b" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="#64748b" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="day" stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={CustomTooltipStyle} />
+                    <Area type="monotone" dataKey="ideal" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" fill="url(#ideal)" name="Ideal" />
+                    <Area type="monotone" dataKey="remaining" stroke="#3b82f6" strokeWidth={3} fill="url(#remaining)" name="Remaining" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </motion.div>
           )}
 
@@ -330,16 +342,18 @@ export const Analytics = () => {
               <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-6">
                 <Award className="w-5 h-5 text-amber-400" /> Team Performance Radar
               </h3>
-              <ResponsiveContainer width="100%" height={320}>
-                <RadarChart data={teamRadar}>
-                  <PolarGrid stroke="#334155" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Radar name="Sprint 6" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
-                  <Radar name="Sprint 5" dataKey="B" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} strokeDasharray="4 4" />
-                  <Tooltip contentStyle={CustomTooltipStyle} />
-                  <Legend formatter={(v) => <span style={{ color: '#94a3b8', fontSize: '12px' }}>{v}</span>} />
-                </RadarChart>
-              </ResponsiveContainer>
+              {mounted && (
+                <ResponsiveContainer width="100%" height={320} minWidth={100} minHeight={200} debounce={50}>
+                  <RadarChart data={teamRadar}>
+                    <PolarGrid stroke="#334155" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                    <Radar name="Sprint 6" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
+                    <Radar name="Sprint 5" dataKey="B" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} strokeDasharray="4 4" />
+                    <Tooltip contentStyle={CustomTooltipStyle} />
+                    <Legend formatter={(v) => <span style={{ color: '#94a3b8', fontSize: '12px' }}>{v}</span>} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
               <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-dark-800">
                 {[
                   { name: 'Alex', tasks: tasks.length > 0 ? 4 : 0, done: 2, avatar: 'A' },

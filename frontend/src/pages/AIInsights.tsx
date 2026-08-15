@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useSelector } from 'react-redux'
 import type { RootState } from '../store/store'
@@ -15,6 +15,9 @@ const fade = {
 }
 
 export const AIInsights = () => {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const { tasks, projects } = useSelector((s: RootState) => s.workspace)
   const user = useSelector((s: RootState) => s.auth.user)
   
@@ -221,14 +224,16 @@ export const AIInsights = () => {
             </div>
           </div>
           <div className="w-full md:w-72 h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={healthRadar}>
-                <PolarGrid stroke="#334155" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                <Radar name="Score" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
-                <Tooltip contentStyle={ttStyle} />
-              </RadarChart>
-            </ResponsiveContainer>
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150} debounce={50}>
+                <RadarChart data={healthRadar}>
+                  <PolarGrid stroke="#334155" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <Radar name="Score" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
+                  <Tooltip contentStyle={ttStyle} />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </motion.div>
