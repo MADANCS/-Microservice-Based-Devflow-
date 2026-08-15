@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
 
     public JwtAuthenticationFilter(
             @Value("${jwt.secret}") String secret,
-            ReactiveRedisTemplate<String, String> redisTemplate) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) ReactiveRedisTemplate<String, String> redisTemplate) {
         super(Config.class);
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
