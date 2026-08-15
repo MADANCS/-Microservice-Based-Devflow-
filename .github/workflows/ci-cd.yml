@@ -1,4 +1,4 @@
-name: DevFlow CI/CD Pipeline & Production Deployment
+name: DevFlow CI/CD Pipeline & Deployment
 
 on:
   push:
@@ -100,36 +100,31 @@ jobs:
         run: docker compose -f docker-compose.core.yml config > /dev/null
 
   # ==========================================
-  # JOB 4: CI/CD Pipeline Summary & Production Access Links
+  # JOB 4: CI/CD Pipeline Summary & Status Matrix
   # ==========================================
   ci-cd-summary:
-    name: 🌐 Deployment Summary & Access Links
+    name: 🌐 CI/CD Status & Deployment Overview
     runs-on: ubuntu-latest
     needs: [frontend-ci, backend-ci, docker-validation]
     if: always()
 
     steps:
-      - name: 📊 Publish Production Access Links to Action Summary
+      - name: 📊 Publish Build Summary
         run: |
-          echo "# 🚀 DevFlow Production & Live Deployment Links" >> $GITHUB_STEP_SUMMARY
+          echo "# 🚀 DevFlow CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Below are the official live production access links for the **DevFlow Platform**:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Target Component | Platform | Live Production URL | Deployment Status |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :--- | :--- | :---: |" >> $GITHUB_STEP_SUMMARY
-          echo "| 💻 **Frontend Web App (React 19)** | Vercel | [https://devflow-frontend.vercel.app](https://devflow-frontend.vercel.app) | 🟢 Active |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🛡️ **API Gateway Ingress** | Render | [https://devflow-api-gateway.onrender.com](https://devflow-api-gateway.onrender.com) | 🟢 Active |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔐 **Auth Service API** | Render | [https://devflow-api-gateway.onrender.com/api/v1/auth](https://devflow-api-gateway.onrender.com/api/v1/auth) | 🟢 Active |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📖 **Swagger OpenAPI Docs** | Render | [https://devflow-api-gateway.onrender.com/swagger-ui.html](https://devflow-api-gateway.onrender.com/swagger-ui.html) | 🟢 Active |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ⚡ Build & CI Check Matrix" >> $GITHUB_STEP_SUMMARY
-          echo "- **Frontend CI (React/Vite)**: \`${{ needs.frontend-ci.result }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Backend CI (Java 21/Spring Boot)**: \`${{ needs.backend-ci.result }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚡ CI Check Matrix" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend CI (React 19 / TypeScript)**: \`${{ needs.frontend-ci.result }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backend CI (Java 21 / Spring Boot Microservices)**: \`${{ needs.backend-ci.result }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Docker Compose Validation**: \`${{ needs.docker-validation.result }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🌐 Live Cloud Deployment Links" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vercel (Frontend)**: Connect repository \`MADANCS/-Microservice-Based-Devflow-\` at [https://vercel.com/new](https://vercel.com/new) with Root Directory set to \`frontend\`." >> $GITHUB_STEP_SUMMARY
+          echo "- **Render (Backend)**: Create a new Blueprint at [https://dashboard.render.com](https://dashboard.render.com) using \`render.yaml\`." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [[ "${{ needs.frontend-ci.result }}" == "success" && "${{ needs.backend-ci.result }}" == "success" && "${{ needs.docker-validation.result }}" == "success" ]]; then
-            echo "✅ **All CI/CD checks passed successfully!**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All build and lint checks passed successfully!**" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
             echo "❌ **One or more CI checks failed.**" >> $GITHUB_STEP_SUMMARY
@@ -149,22 +144,18 @@ jobs:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🌐 Deploy to Vercel (Production)
+      - name: 🌐 Deploy to Vercel
+        id: vercel
         uses: amondnet/vercel-action@v25
+        if: env.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./frontend
           vercel-args: '--prod'
-        continue-on-error: true
-
-      - name: 📢 Print Vercel Access URL
-        run: |
-          echo "=========================================="
-          echo "🌐 Vercel Production Frontend Live URL:"
-          echo "https://devflow-frontend.vercel.app"
-          echo "=========================================="
 
   # ==========================================
   # JOB 6: Render Backend Deployment
@@ -186,10 +177,3 @@ jobs:
           else
             echo "RENDER_DEPLOY_HOOK_URL secret not set. Skipping webhook trigger."
           fi
-
-      - name: 📢 Print Render Access URL
-        run: |
-          echo "=========================================="
-          echo "🛡️ Render Production API Gateway Live URL:"
-          echo "https://devflow-api-gateway.onrender.com"
-          echo "=========================================="
