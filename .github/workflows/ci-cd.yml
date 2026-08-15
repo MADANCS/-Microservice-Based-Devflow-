@@ -1,4 +1,4 @@
-name: DevFlow CI/CD Pipeline
+name: DevFlow CI/CD Pipeline & Deployment
 
 on:
   push:
@@ -100,7 +100,7 @@ jobs:
         run: docker compose -f docker-compose.core.yml config > /dev/null
 
   # ==========================================
-  # JOB 4: CI/CD Pipeline Summary & Deployment Ready
+  # JOB 4: CI/CD Pipeline Summary & Evaluation
   # ==========================================
   ci-cd-summary:
     name: ✅ CI/CD Status Summary
@@ -126,3 +126,48 @@ jobs:
             echo "=========================================="
             exit 1
           fi
+
+  # ==========================================
+  # JOB 5: Vercel Frontend Deployment
+  # ==========================================
+  deploy-vercel:
+    name: 🚀 Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    needs: [ci-cd-summary]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🌐 Deploy to Vercel (Production)
+        uses: amondnet/vercel-action@v25
+        if: env.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./frontend
+          vercel-args: '--prod'
+
+  # ==========================================
+  # JOB 6: Render Backend Deployment
+  # ==========================================
+  deploy-render:
+    name: 🚀 Deploy Backend to Render
+    runs-on: ubuntu-latest
+    needs: [ci-cd-summary]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: 🔔 Trigger Render Deployment Webhook
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Triggering Render deployment..."
+          curl -s -X POST "$RENDER_DEPLOY_HOOK_URL"

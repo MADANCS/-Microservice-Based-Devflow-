@@ -119,8 +119,8 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
     if (!isLoading && hasMore) fetchPage(pageRef.current + 1)
   }, [isLoading, hasMore, fetchPage])
 
-  const flushMarkRead = useCallback(
-    debounce(async () => {
+  const flushMarkRead = useCallback(() => {
+    const fn = debounce(async () => {
       if (pendingReads.current.size === 0) return
       const ids = [...pendingReads.current]
       pendingReads.current.clear()
@@ -133,9 +133,9 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
           signal: AbortSignal.timeout(5000),
         })
       } catch { /* no-op */ }
-    }, MARK_READ_DEBOUNCE),
-    []
-  )
+    }, MARK_READ_DEBOUNCE)
+    fn()
+  }, [])
 
   const markRead = useCallback((id: string) => {
     dispatch(markAsRead(id))

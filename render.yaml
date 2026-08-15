@@ -1,0 +1,32 @@
+services:
+  # DevFlow API Gateway & Combined Core Backend Service
+  - type: web
+    name: devflow-api-gateway
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 9080
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx512m"
+
+  # DevFlow React Frontend Client (Vercel / Render fallback)
+  - type: web
+    name: devflow-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://devflow-api-gateway.onrender.com/api/v1
+      - key: VITE_WS_URL
+        value: https://devflow-api-gateway.onrender.com/ws
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
