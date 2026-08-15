@@ -1,4 +1,4 @@
-# Multi-stage Docker build for DevFlow Platform Backend & Ingress Gateway
+# Multi-stage Docker build for DevFlow Platform Backend & Microservices
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
@@ -15,17 +15,30 @@ COPY analytics-service analytics-service
 COPY integration-service integration-service
 COPY realtime-service realtime-service
 
-# Build and package executable JARs
+# Build and package all executable microservice JARs
 RUN mvn clean package -DskipTests=true --batch-mode
 
 # Runtime container stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copy compiled API Gateway artifact
-COPY --from=builder /app/api-gateway/target/api-gateway-*.jar app.jar
+RUN mkdir -p /app/apps
+
+# Copy all compiled microservice artifacts
+COPY --from=builder /app/api-gateway/target/api-gateway-*.jar /app/apps/api-gateway.jar
+COPY --from=builder /app/auth-service/target/auth-service-*.jar /app/apps/auth-service.jar
+COPY --from=builder /app/project-service/target/project-service-*.jar /app/apps/project-service.jar
+COPY --from=builder /app/task-service/target/task-service-*.jar /app/apps/task-service.jar
+COPY --from=builder /app/ai-engine/target/ai-engine-*.jar /app/apps/ai-engine.jar
+COPY --from=builder /app/notification-service/target/notification-service-*.jar /app/apps/notification-service.jar
+COPY --from=builder /app/analytics-service/target/analytics-service-*.jar /app/apps/analytics-service.jar
+COPY --from=builder /app/integration-service/target/integration-service-*.jar /app/apps/integration-service.jar
+COPY --from=builder /app/realtime-service/target/realtime-service-*.jar /app/apps/realtime-service.jar
+
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 ENV PORT=9080
 EXPOSE 9080
 
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["/app/entrypoint.sh"]
