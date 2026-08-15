@@ -435,6 +435,49 @@ html.light .bg-primary-900\/10, .light-mode .bg-primary-900\/10 {
   background-color: #eff6ff !important;
 }
 
+/* Universal Light Mode Overrides for Inline Dark Gradients and Card Boxes */
+html.light [style*="10 14 30"], .light-mode [style*="10 14 30"],
+html.light [style*="15 23 42"], .light-mode [style*="15 23 42"],
+html.light [style*="2 6 23"], .light-mode [style*="2 6 23"],
+html.light [style*="0a0e1e"], .light-mode [style*="0a0e1e"] {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+}
+
+html.light .bg-slate-800\/20, .light-mode .bg-slate-800\/20,
+html.light .bg-slate-800, .light-mode .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .bg-slate-900, .light-mode .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .text-slate-400, .light-mode .text-slate-400,
+html.light .text-slate-500, .light-mode .text-slate-500 {
+  color: #334155 !important;
+}
+
+/* Recharts Axes & Labels in Light Mode */
+html.light .recharts-cartesian-axis-tick text, .light-mode .recharts-cartesian-axis-tick text {
+  fill: #334155 !important;
+  font-weight: 600 !important;
+}
+
+html.light .recharts-cartesian-grid line, .light-mode .recharts-cartesian-grid line {
+  stroke: #e2e8f0 !important;
+}
+
+html.light .recharts-default-tooltip, .light-mode .recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1) !important;
+}
+
 /* ── Global scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track  { background: transparent; }

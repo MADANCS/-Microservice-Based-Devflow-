@@ -11,6 +11,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../store/store'
 import { selectWorkspaceKPIs, selectProjectProgress } from '../store/selectors'
 import { fetchProjects, fetchTasks } from '../store/workspaceSlice'
+function cn(...inputs: (string | undefined | null | false)[]) {
+  return inputs.filter(Boolean).join(' ')
+}
 
 /* ── Animated counter ── */
 const AnimatedNumber = ({ target }: { target: number }) => {
@@ -34,7 +37,7 @@ const Ring = ({ pct, color, size = 56, stroke = 5 }: { pct: number; color: strin
   const circ = 2 * Math.PI * r
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgb(30 41 59)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth={stroke} />
       <motion.circle
         cx={size / 2} cy={size / 2} r={r}
         fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
@@ -166,12 +169,7 @@ export const Dashboard = () => {
               variants={fadeUp}
               custom={i + 1}
               whileHover={{ y: -3, transition: { type: 'spring' as const, stiffness: 400 } }}
-              className="relative rounded-2xl p-5 overflow-hidden cursor-pointer"
-              style={{
-                background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))',
-                border: `1px solid rgb(51 65 85/0.4)`,
-                backdropFilter: 'blur(12px)',
-              }}
+              className="relative rounded-2xl p-5 overflow-hidden cursor-pointer glass-card"
             >
               {/* Glow in corner */}
               <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-20 blur-2xl"
@@ -208,8 +206,7 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Velocity area chart */}
-        <motion.div variants={fadeUp} custom={5} className="lg:col-span-2 rounded-2xl p-5 overflow-hidden"
-          style={{ background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))', border: '1px solid rgb(51 65 85/0.4)' }}>
+        <motion.div variants={fadeUp} custom={5} className="lg:col-span-2 rounded-2xl p-5 overflow-hidden glass-card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[#61dafb]" /> Team Velocity
@@ -246,8 +243,7 @@ export const Dashboard = () => {
         </motion.div>
 
         {/* AI Insights side panel */}
-        <motion.div variants={fadeUp} custom={6} className="rounded-2xl p-5 flex flex-col relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))', border: '1px solid rgb(51 65 85/0.4)' }}>
+        <motion.div variants={fadeUp} custom={6} className="rounded-2xl p-5 flex flex-col relative overflow-hidden glass-card">
           <div className="absolute top-0 left-0 w-full h-1 rounded-t-2xl" style={{ background: 'linear-gradient(90deg,#61dafb,#4f46e5)' }} />
 
           <h3 className="text-base font-semibold text-white flex items-center gap-2 mb-4">
@@ -328,8 +324,7 @@ export const Dashboard = () => {
       </div>
 
       {/* ── Weekly Activity ── */}
-      <motion.div variants={fadeUp} custom={7} className="rounded-2xl p-5"
-        style={{ background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))', border: '1px solid rgb(51 65 85/0.4)' }}>
+      <motion.div variants={fadeUp} custom={7} className="rounded-2xl p-5 glass-card">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-white flex items-center gap-2">
             <Activity className="w-4 h-4 text-purple-400" /> This Week's Activity
@@ -356,8 +351,7 @@ export const Dashboard = () => {
       </motion.div>
 
       {/* ── Project Progress ── */}
-      <motion.div variants={fadeUp} custom={8} className="rounded-2xl p-5"
-        style={{ background: 'linear-gradient(135deg,rgb(10 14 30/0.9),rgb(15 23 42/0.7))', border: '1px solid rgb(51 65 85/0.4)' }}>
+      <motion.div variants={fadeUp} custom={8} className="rounded-2xl p-5 glass-card">
         <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Project Progress
         </h3>
