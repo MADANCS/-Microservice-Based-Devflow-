@@ -2,7 +2,7 @@
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
-# Copy parent pom and core module sources
+# Copy parent pom and all module directories so Maven parent pom validation succeeds
 COPY pom.xml .
 COPY common-lib common-lib
 COPY api-gateway api-gateway
@@ -10,9 +10,13 @@ COPY auth-service auth-service
 COPY project-service project-service
 COPY task-service task-service
 COPY ai-engine ai-engine
+COPY notification-service notification-service
+COPY analytics-service analytics-service
+COPY integration-service integration-service
+COPY realtime-service realtime-service
 
-# Build and package core microservice JARs
-RUN mvn clean package -DskipTests=true --batch-mode
+# Build and package core microservice JARs (-pl targets active services, -am includes common-lib)
+RUN mvn clean package -pl api-gateway,auth-service,project-service,task-service,ai-engine -am -DskipTests=true --batch-mode
 
 # Runtime container stage
 FROM eclipse-temurin:21-jre-alpine
