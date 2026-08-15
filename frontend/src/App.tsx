@@ -10,16 +10,16 @@ import { StatCardSkeleton, ChartSkeleton } from './components/Skeleton'
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Lazy-loaded heavy pages Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // Each route chunk is split at the page level Ã¢â‚¬â€ reduces initial bundle by ~60%
-const CommandCenter  = lazy(() => import('./pages/CommandCenter').then(m => ({ default: m.CommandCenter })))
-const Dashboard      = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })))
-const Projects       = lazy(() => import('./pages/Projects').then(m => ({ default: m.Projects })))
-const CalendarPage   = lazy(() => import('./pages/CalendarPage').then(m => ({ default: m.CalendarPage })))
-const Analytics      = lazy(() => import('./pages/Analytics').then(m => ({ default: m.Analytics })))
-const AIInsights     = lazy(() => import('./pages/AIInsights').then(m => ({ default: m.AIInsights })))
-const Settings       = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })))
-const Team           = lazy(() => import('./pages/Team').then(m => ({ default: m.Team })))
-const Roadmap        = lazy(() => import('./pages/Roadmap').then(m => ({ default: m.Roadmap })))
-const SprintPlanning = lazy(() => import('./pages/SprintPlanning').then(m => ({ default: m.SprintPlanning })))
+import { CommandCenter } from './pages/CommandCenter'
+import { Dashboard } from './pages/Dashboard'
+import { Projects } from './pages/Projects'
+import { CalendarPage } from './pages/CalendarPage'
+import { Analytics } from './pages/Analytics'
+import { AIInsights } from './pages/AIInsights'
+import { Settings } from './pages/Settings'
+import { Team } from './pages/Team'
+import { Roadmap } from './pages/Roadmap'
+import { SprintPlanning } from './pages/SprintPlanning'
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Fallback skeletons per page Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 const DashboardFallback = () => (
