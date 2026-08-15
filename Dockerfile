@@ -25,11 +25,11 @@ WORKDIR /app
 RUN mkdir -p /app/apps
 
 # Copy compiled microservice artifacts
-COPY --from=builder /app/api-gateway/target/api-gateway-*.jar /app/apps/api-gateway.jar
-COPY --from=builder /app/auth-service/target/auth-service-*.jar /app/apps/auth-service.jar
-COPY --from=builder /app/project-service/target/project-service-*.jar /app/apps/project-service.jar
-COPY --from=builder /app/task-service/target/task-service-*.jar /app/apps/task-service.jar
-COPY --from=builder /app/ai-engine/target/ai-engine-*.jar /app/apps/ai-engine.jar
+COPY --from=builder /app/api-gateway/target/api-gateway-1.0.0-SNAPSHOT.jar /app/apps/api-gateway.jar
+COPY --from=builder /app/auth-service/target/auth-service-1.0.0-SNAPSHOT.jar /app/apps/auth-service.jar
+COPY --from=builder /app/project-service/target/project-service-1.0.0-SNAPSHOT.jar /app/apps/project-service.jar
+COPY --from=builder /app/task-service/target/task-service-1.0.0-SNAPSHOT.jar /app/apps/task-service.jar
+COPY --from=builder /app/ai-engine/target/ai-engine-1.0.0-SNAPSHOT.jar /app/apps/ai-engine.jar
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
