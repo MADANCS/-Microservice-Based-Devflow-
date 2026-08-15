@@ -74,9 +74,7 @@ export const CommandCenter = () => {
       dispatch(pushToast({ type: 'success', title: 'Project Saved', message: `Project "${project.name}" details updated.` }))
       dispatch(addActivityLog({ type: 'PROJECT_CREATED', message: `Project "${project.name}" updated.` }))
     } else {
-      dispatch(addProject(project as any) as any).then(() => {
-        dispatch(fetchProjects() as any)
-      })
+      dispatch(addProject(project as any) as any)
       dispatch(pushToast({ type: 'success', title: 'Project Created', message: `New project "${project.name}" [${project.key}] created.` }))
       dispatch(addActivityLog({ type: 'PROJECT_CREATED', message: `New project "${project.name}" created.` }))
     }

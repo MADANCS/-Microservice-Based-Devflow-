@@ -4,7 +4,8 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api/v1',
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 5000,
 })
 
 api.interceptors.request.use((config) => {
@@ -16,10 +17,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Prevent wiping local workspace session on transient 401 backend failures
+    if (error.response?.status === 401 && error.config?.url?.includes('/auth/login')) {
       localStorage.removeItem('token')
-      localStorage.removeItem('devflow_session')
-      window.location.href = '/login'
     }
     return Promise.reject(error)
   }
@@ -235,16 +235,22 @@ function unwrapList(responseData: any): any[] {
 
 export const fetchProjects = createAsyncThunk(
   'workspace/fetchProjects',
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
       const response = await api.get('/projects')
       const raw = unwrapList(response.data)
       if (raw && raw.length > 0) {
         return raw.map(mapProject) as Project[]
       }
-      return loadUserWorkspace().projects
+      const saved = loadUserWorkspace().projects
+      const state: any = getState()
+      const currentProjects = state?.workspace?.projects || []
+      return currentProjects.length > saved.length ? currentProjects : saved
     } catch (err: any) {
-      return loadUserWorkspace().projects
+      const saved = loadUserWorkspace().projects
+      const state: any = getState()
+      const currentProjects = state?.workspace?.projects || []
+      return currentProjects.length > saved.length ? currentProjects : saved
     }
   }
 )
@@ -318,15 +324,20 @@ export const updateProjectSettings = createAsyncThunk(
 
 export const fetchTasks = createAsyncThunk(
   'workspace/fetchTasks',
-  async (projectId: string, { rejectWithValue }) => {
+  async (projectId: string, { getState, rejectWithValue }) => {
     try {
       const response = await api.get(`/tasks?projectId=${projectId}&size=200`)
       const raw = unwrapList(response.data)
-      return { projectId, tasks: raw.map(mapTask) as Task[] }
+      if (raw && raw.length > 0) {
+        return { projectId, tasks: raw.map(mapTask) as Task[] }
+      }
+      const state: any = getState()
+      const localTasks = state?.workspace?.tasks?.filter((t: Task) => t.projectId === projectId) || []
+      return { projectId, tasks: localTasks }
     } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message ?? err.message ?? 'Failed to load tasks'
-      )
+      const state: any = getState()
+      const localTasks = state?.workspace?.tasks?.filter((t: Task) => t.projectId === projectId) || []
+      return { projectId, tasks: localTasks }
     }
   }
 )
@@ -427,8 +438,10 @@ const workspaceSlice = createSlice({
       state.error  = null
     })
     builder.addCase(fetchProjects.fulfilled, (state, action) => {
-      if (action.payload) {
-        state.projects = action.payload
+      if (action.payload && action.payload.length > 0) {
+        const existingIds = new Set(action.payload.map((p: Project) => p.id))
+        const extraLocalProjects = state.projects.filter(p => !existingIds.has(p.id))
+        state.projects = [...action.payload, ...extraLocalProjects]
         saveUserWorkspace(state.projects, state.tasks)
       }
       state.status = 'succeeded'
@@ -466,11 +479,11 @@ const workspaceSlice = createSlice({
 
     builder.addCase(fetchTasks.fulfilled, (state, action) => {
       const { projectId, tasks } = action.payload
-      if (tasks && tasks.length > 0) {
-        state.tasks = [
-          ...state.tasks.filter(t => t.projectId !== projectId),
-          ...tasks,
-        ]
+      if (tasks) {
+        const existingTaskIds = new Set(tasks.map((t: Task) => t.id))
+        const otherTasks = state.tasks.filter((t: Task) => t.projectId !== projectId)
+        const localTasksForProj = state.tasks.filter((t: Task) => t.projectId === projectId && !existingTaskIds.has(t.id))
+        state.tasks = [...otherTasks, ...tasks, ...localTasksForProj]
         saveUserWorkspace(state.projects, state.tasks)
       }
     })
