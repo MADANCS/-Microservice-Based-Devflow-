@@ -16,7 +16,7 @@ import {
 
 const fade = {
   hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, type: 'spring' as const, stiffness: 110 } }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 }
 
 const ROLE_BADGE: Record<TeamMember['role'], string> = {

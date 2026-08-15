@@ -11,7 +11,7 @@ import axios from 'axios'
 
 const fade = {
   hidden: { opacity: 0, y: 18 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, type: 'spring' as const, stiffness: 110 } }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 }
 
 export const AIInsights = () => {
@@ -227,7 +227,7 @@ export const AIInsights = () => {
           </div>
           <div className="w-full md:w-72 h-52">
             {mounted && (
-              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150} debounce={50}>
+              <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={healthRadar}>
                   <PolarGrid stroke="#334155" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />

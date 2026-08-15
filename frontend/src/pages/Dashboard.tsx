@@ -68,10 +68,7 @@ const weeklyActivity = [
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.08, type: 'spring' as const, stiffness: 120, damping: 16 }
-  }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 }
 
 const TT_STYLE = {
@@ -224,7 +221,7 @@ export const Dashboard = () => {
           </div>
           <div className="h-52">
             {mounted && (
-              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={150} debounce={50}>
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={velocityData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gPoints" x1="0" y1="0" x2="0" y2="1">
@@ -344,7 +341,7 @@ export const Dashboard = () => {
         </div>
         <div className="h-36">
           {mounted && (
-            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={120} debounce={50}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyActivity} margin={{ top: 5, right: 5, left: -25, bottom: 0 }} barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke="rgb(51 65 85/0.3)" vertical={false} />
                 <XAxis dataKey="day" stroke="#475569" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />

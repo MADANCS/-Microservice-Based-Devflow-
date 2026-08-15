@@ -6,7 +6,7 @@ import { Map, ChevronLeft, ChevronRight, Circle, CheckCircle2, Clock } from 'luc
 
 const fade = {
   hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, type: 'spring' as const, stiffness: 110 } }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 }
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']

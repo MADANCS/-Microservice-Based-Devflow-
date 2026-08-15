@@ -68,7 +68,7 @@ const avatarColors: Record<string, string> = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07, type: 'spring' as const, stiffness: 120 } })
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 }
 
 export const Analytics = () => {
@@ -199,7 +199,7 @@ export const Analytics = () => {
                 </div>
                 <div className="flex items-center gap-6">
                   {mounted && (
-                    <ResponsiveContainer width="100%" height={180} minWidth={100} minHeight={150} debounce={50}>
+                    <ResponsiveContainer width="100%" height={180}>
                       <PieChart>
                         <Pie data={priorityDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
                           {priorityDist.map((_, idx) => <Cell key={idx} fill={COLORS[idx]} />)}
@@ -279,7 +279,7 @@ export const Analytics = () => {
                 </div>
               </div>
               {mounted && (
-                <ResponsiveContainer width="100%" height={320} minWidth={100} minHeight={200} debounce={50}>
+                <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={sprintVelocity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                     <XAxis dataKey="sprint" stroke="#64748b" tick={{ fill: '#64748b' }} axisLine={false} tickLine={false} />
@@ -315,7 +315,7 @@ export const Analytics = () => {
                 <span className="text-xs text-dark-400 bg-dark-800 px-3 py-1 rounded-lg border border-dark-700">Sprint 6 — Active</span>
               </div>
               {mounted && (
-                <ResponsiveContainer width="100%" height={320} minWidth={100} minHeight={200} debounce={50}>
+                <ResponsiveContainer width="100%" height={320}>
                   <AreaChart data={burndownData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="remaining" x1="0" y1="0" x2="0" y2="1">
@@ -345,7 +345,7 @@ export const Analytics = () => {
                 <Award className="w-5 h-5 text-amber-400" /> Team Performance Radar
               </h3>
               {mounted && (
-                <ResponsiveContainer width="100%" height={320} minWidth={100} minHeight={200} debounce={50}>
+                <ResponsiveContainer width="100%" height={320}>
                   <RadarChart data={teamRadar}>
                     <PolarGrid stroke="#334155" />
                     <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 12 }} />
