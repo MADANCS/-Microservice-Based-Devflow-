@@ -79,8 +79,10 @@ export const DashboardLayout = () => {
     return () => window.removeEventListener('keydown', handle)
   }, [navigate])
 
-  const filteredTasks    = tasks.filter(t => t.content.toLowerCase().includes(searchQuery.toLowerCase()) || t.key.toLowerCase().includes(searchQuery.toLowerCase()))
-  const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.key.toLowerCase().includes(searchQuery.toLowerCase()))
+  const safeTasks        = Array.isArray(tasks) ? tasks : []
+  const safeProjects     = Array.isArray(projects) ? projects : []
+  const filteredTasks    = safeTasks.filter(t => (t?.content || '').toLowerCase().includes(searchQuery.toLowerCase()) || (t?.key || '').toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredProjects = safeProjects.filter(p => (p?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p?.key || '').toLowerCase().includes(searchQuery.toLowerCase()))
 
   const currentNavLabel = navItems.find(n => n.path === location.pathname)?.label ?? 'DevFlow'
 

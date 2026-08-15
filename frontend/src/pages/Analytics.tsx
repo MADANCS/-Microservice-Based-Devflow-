@@ -75,22 +75,24 @@ export const Analytics = () => {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  const { projects, tasks } = useSelector((state: RootState) => state.workspace)
+  const workspace = useSelector((state: RootState) => state.workspace)
+  const projects = Array.isArray(workspace?.projects) ? workspace.projects : []
+  const tasks = Array.isArray(workspace?.tasks) ? workspace.tasks : []
   const [activeTab, setActiveTab] = useState<'overview' | 'velocity' | 'burndown' | 'team'>('overview')
 
   const totalTasks = tasks.length
-  const doneTasks = tasks.filter(t => t.status === 'DONE').length
-  const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS').length
-  const overdueTasks = tasks.filter(t => t.dueDate < '2026-06-14' && t.status !== 'DONE').length
+  const doneTasks = tasks.filter(t => t?.status === 'DONE').length
+  const inProgressTasks = tasks.filter(t => t?.status === 'IN_PROGRESS').length
+  const overdueTasks = tasks.filter(t => (t?.dueDate || '') < '2026-06-14' && t?.status !== 'DONE').length
   const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
   const avgVelocity = Math.round(sprintVelocity.reduce((s, v) => s + v.delivered, 0) / sprintVelocity.length)
 
   const priorityDist = useMemo(() => {
     const list = [
-      { name: 'Critical', value: tasks.filter(t => t.priority === 'CRITICAL').length },
-      { name: 'High', value: tasks.filter(t => t.priority === 'HIGH').length },
-      { name: 'Medium', value: tasks.filter(t => t.priority === 'MEDIUM').length },
-      { name: 'Low', value: tasks.filter(t => t.priority === 'LOW').length },
+      { name: 'Critical', value: tasks.filter(t => t?.priority === 'CRITICAL').length },
+      { name: 'High', value: tasks.filter(t => t?.priority === 'HIGH').length },
+      { name: 'Medium', value: tasks.filter(t => t?.priority === 'MEDIUM').length },
+      { name: 'Low', value: tasks.filter(t => t?.priority === 'LOW').length },
     ].filter(d => d.value > 0)
     return list.length > 0 ? list : [{ name: 'Tasks', value: 1 }]
   }, [tasks])
@@ -350,7 +352,7 @@ export const Analytics = () => {
                     <Radar name="Sprint 6" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
                     <Radar name="Sprint 5" dataKey="B" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} strokeDasharray="4 4" />
                     <Tooltip contentStyle={CustomTooltipStyle} />
-                    <Legend formatter={(v) => <span style={{ color: '#94a3b8', fontSize: '12px' }}>{v}</span>} />
+                    <Legend wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
                   </RadarChart>
                 </ResponsiveContainer>
               )}

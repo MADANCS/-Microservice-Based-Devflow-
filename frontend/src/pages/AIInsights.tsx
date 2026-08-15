@@ -18,7 +18,9 @@ export const AIInsights = () => {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  const { tasks, projects } = useSelector((s: RootState) => s.workspace)
+  const workspace = useSelector((s: RootState) => s.workspace)
+  const tasks = Array.isArray(workspace?.tasks) ? workspace.tasks : []
+  const projects = Array.isArray(workspace?.projects) ? workspace.projects : []
   const user = useSelector((s: RootState) => s.auth.user)
   
   const [activeSection, setActiveSection] = useState<'overview' | 'risks' | 'recommendations' | 'live-assistant'>('overview')
@@ -29,11 +31,11 @@ export const AIInsights = () => {
 
   // ── Dynamic calculations from real user tasks & projects ──────────────────
   const totalTasks = tasks.length
-  const doneTasks = tasks.filter(t => t.status === 'DONE').length
-  const criticalTasks = tasks.filter(t => t.priority === 'CRITICAL' || t.priority === 'HIGH')
-  const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS')
-  const totalPoints = tasks.reduce((sum, t) => sum + (t.points || 1), 0)
-  const donePoints = tasks.filter(t => t.status === 'DONE').reduce((sum, t) => sum + (t.points || 1), 0)
+  const doneTasks = tasks.filter(t => t?.status === 'DONE').length
+  const criticalTasks = tasks.filter(t => t?.priority === 'CRITICAL' || t?.priority === 'HIGH')
+  const inProgressTasks = tasks.filter(t => t?.status === 'IN_PROGRESS')
+  const totalPoints = tasks.reduce((sum, t) => sum + (t?.points || 1), 0)
+  const donePoints = tasks.filter(t => t?.status === 'DONE').reduce((sum, t) => sum + (t?.points || 1), 0)
 
   const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
   const pointsCompletionRate = totalPoints > 0 ? Math.round((donePoints / totalPoints) * 100) : 0
