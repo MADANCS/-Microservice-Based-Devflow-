@@ -10,23 +10,33 @@
   
   <p align="center">
     <a href="https://github.com/MADANCS/-Microservice-Based-Devflow-/actions"><img src="https://github.com/MADANCS/-Microservice-Based-Devflow-/actions/workflows/ci-cd.yml/badge.svg" alt="DevFlow CI/CD Pipeline" /></a>
+    <a href="https://microservice-based-devflow.vercel.app"><img src="https://img.shields.io/badge/Vercel-Frontend_Live-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel Live" /></a>
+    <a href="https://devflow-api-gateway-42ah.onrender.com"><img src="https://img.shields.io/badge/Render-Backend_Live-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render Live" /></a>
     <a href="https://openjdk.org/projects/jdk/21/"><img src="https://img.shields.io/badge/Java-21-E67E22?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" /></a>
     <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot 3.3" /></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" /></a>
-    <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-3.4-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind" /></a>
     <br/>
     <em>Enterprise Microservices · Isolated User Sessions · Automated GitHub CI/CD Pipeline</em>
   </p>
 
   <br/>
 
-  <h3>⚡ SINGLE-CLICK LIVE ACCESS LINKS</h3>
+  <h3>🌐 LIVE PRODUCTION DEPLOYMENT LINKS</h3>
   <p>
-    <a href="http://localhost:4000"><strong>🌐 Click Here to Open DevFlow Live App (http://localhost:4000)</strong></a>
+    <a href="https://microservice-based-devflow.vercel.app"><strong>💻 Click Here to Open DevFlow Live Web Application (Vercel)</strong></a>
     <br/>
-    <a href="http://localhost:9080"><strong>🛡️ Click Here to Open API Gateway (http://localhost:9080)</strong></a>
+    <a href="https://devflow-api-gateway-42ah.onrender.com"><strong>🛡️ Click Here to Open API Gateway Ingress (Render)</strong></a>
     <br/>
-    <a href="http://localhost:9081/swagger-ui.html"><strong>📖 Click Here to Open Swagger API Documentation</strong></a>
+    <a href="https://devflow-api-gateway-42ah.onrender.com/actuator/health"><strong>📖 Click Here to Check API Health Status</strong></a>
+  </p>
+
+  <br/>
+
+  <h3>⚡ LOCAL DEVELOPMENT LINKS</h3>
+  <p>
+    <a href="http://localhost:4000"><strong>💻 DevFlow Local Frontend App (http://localhost:4000)</strong></a>
+    <br/>
+    <a href="http://localhost:9080"><strong>🛡️ Local API Gateway Ingress (http://localhost:9080)</strong></a>
   </p>
 </div>
 
