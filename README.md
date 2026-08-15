@@ -9,12 +9,13 @@
   <p align="center"><strong>Next-Generation AI-Powered Developer Workflow & Project Management Platform</strong></p>
   
   <p align="center">
+    <a href="https://github.com/MADANCS/-Microservice-Based-Devflow-/actions"><img src="https://github.com/MADANCS/-Microservice-Based-Devflow-/actions/workflows/ci-cd.yml/badge.svg" alt="DevFlow CI/CD Pipeline" /></a>
     <a href="https://openjdk.org/projects/jdk/21/"><img src="https://img.shields.io/badge/Java-21-E67E22?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" /></a>
     <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot 3.3" /></a>
     <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" /></a>
     <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind-3.4-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind" /></a>
     <br/>
-    <em>Enterprise Microservices · Isolated User Sessions · Real-time AI Automation</em>
+    <em>Enterprise Microservices · Isolated User Sessions · Automated GitHub CI/CD Pipeline</em>
   </p>
 
   <br/>
